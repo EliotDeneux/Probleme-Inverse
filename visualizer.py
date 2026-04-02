@@ -13,6 +13,8 @@ from pathlib import Path
 DATA_DIR = Path(__file__).parent / "data"
 DB_PATH = DATA_DIR / "cells.db"
 
+verbose = False  # Print des informations pour visualiser les premières lignes de la base de données
+
 def main():
     if not DB_PATH.exists():
         print(f"Erreur : La base de données est introuvable au chemin {DB_PATH}.")
@@ -24,6 +26,27 @@ def main():
     con = sqlite3.connect(DB_PATH)
     df = pd.read_sql_query("SELECT model, rate, division_age, division_size FROM cells", con)
     con.close()
+
+    if verbose :
+
+        # ── Exploration de la structure ──────────────────────────────────────────
+        print(f"\n{'─'*40}")
+        print(f" Structure de la base de données ")
+        print(f"{'─'*40}")
+        
+        # Nombre d'entrées (lignes, colonnes)
+        n_rows, n_cols = df.shape
+        print(f"Nombre total de cellules simulées : {n_rows:,}")
+        print(f"Nombre de colonnes par cellule    : {n_cols}")
+        print(f"Colonnes disponibles              : {list(df.columns)}")
+        
+        print("\nAperçu des 5 premières lignes :")
+        print(df.head()) # Affiche les 5 premières lignes
+        
+        # Petit comptage par modèle pour vérifier l'équilibre
+        print("\nRépartition des simulations :")
+        print(df.groupby(['model', 'rate']).size().unstack(fill_value=0))
+        print(f"{'─'*40}\n")
 
     # Configuration de l'esthétique des graphiques
     sns.set_theme(style="whitegrid", palette="muted")
