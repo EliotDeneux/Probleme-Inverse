@@ -210,5 +210,6 @@ __marimo__/
 data/
 
 # Figures and results 
+figures_real/
 figures/
 results/

@@ -1,0 +1,74 @@
+{
+  "E. coli \u2013 Glyc\u00e9rol (croissance lente)": {
+    "n": 11060,
+    "K (1/min)": 0.01341,
+    "\u03c4 (min)": 51.7,
+    "<sb>": 2.104,
+    "<sd>": 4.157,
+    "<ad> (min)": 51.2,
+    "CV(sb)": 0.134,
+    "CV(ad)": 0.156,
+    "<sd>/<sb>": 1.976,
+    "Unit\u00e9 taille": "\u00b5m"
+  },
+  "Synth\u00e9tique \u2013 Milieu riche": {
+    "n": 10684,
+    "K (1/min)": 0.03043,
+    "\u03c4 (min)": 22.8,
+    "<sb>": 3.41,
+    "<sd>": 6.708,
+    "<ad> (min)": 22.3,
+    "CV(sb)": 0.137,
+    "CV(ad)": 0.188,
+    "<sd>/<sb>": 1.967,
+    "Unit\u00e9 taille": "\u00b5m"
+  },
+  "E. coli Lydia3101 \u2013 P\u00f4le neuf": {
+    "n": 654,
+    "K (1/min)": 0.00642,
+    "\u03c4 (min)": 107.9,
+    "<sb>": 49.014,
+    "<sd>": 98.349,
+    "<ad> (min)": 109.2,
+    "CV(sb)": 0.119,
+    "CV(ad)": 0.181,
+    "<sd>/<sb>": 2.007,
+    "Unit\u00e9 taille": "px"
+  },
+  "E. coli Lydia3101 \u2013 P\u00f4le vieux": {
+    "n": 648,
+    "K (1/min)": 0.00629,
+    "\u03c4 (min)": 110.2,
+    "<sb>": 49.67,
+    "<sd>": 94.585,
+    "<ad> (min)": 103.1,
+    "CV(sb)": 0.13,
+    "CV(ad)": 0.209,
+    "<sd>/<sb>": 1.904,
+    "Unit\u00e9 taille": "px"
+  },
+  "E. coli Eric1002 \u2013 Croissance lente": {
+    "n": 1141,
+    "K (1/min)": 0.0055,
+    "\u03c4 (min)": 125.9,
+    "<sb>": 39.209,
+    "<sd>": 76.134,
+    "<ad> (min)": 121.3,
+    "CV(sb)": 0.149,
+    "CV(ad)": 0.208,
+    "<sd>/<sb>": 1.942,
+    "Unit\u00e9 taille": "px"
+  },
+  "E. coli Eric1009 \u2013 Croissance lente": {
+    "n": 1596,
+    "K (1/min)": 0.00547,
+    "\u03c4 (min)": 126.7,
+    "<sb>": 42.245,
+    "<sd>": 81.909,
+    "<ad> (min)": 122.1,
+    "CV(sb)": 0.153,
+    "CV(ad)": 0.208,
+    "<sd>/<sb>": 1.939,
+    "Unit\u00e9 taille": "px"
+  }
+}

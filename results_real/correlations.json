@@ -1,0 +1,134 @@
+{
+  "glycerol": {
+    "corr(sb, sd)": {
+      "pearson_r": 0.544,
+      "p_value": 0.0
+    },
+    "corr(sb, increment)": {
+      "pearson_r": -0.1569,
+      "p_value": 0.0
+    },
+    "corr(sb, ad)": {
+      "pearson_r": -0.5233,
+      "p_value": 0.0
+    },
+    "corr(ad, increment)": {
+      "pearson_r": 0.6977,
+      "p_value": 0.0
+    },
+    "corr(sd, increment)": {
+      "pearson_r": 0.7433,
+      "p_value": 0.0
+    }
+  },
+  "synthetic_rich": {
+    "corr(sb, sd)": {
+      "pearson_r": 0.4892,
+      "p_value": 0.0
+    },
+    "corr(sb, increment)": {
+      "pearson_r": -0.0779,
+      "p_value": 0.0
+    },
+    "corr(sb, ad)": {
+      "pearson_r": -0.5143,
+      "p_value": 0.0
+    },
+    "corr(ad, increment)": {
+      "pearson_r": 0.7913,
+      "p_value": 0.0
+    },
+    "corr(sd, increment)": {
+      "pearson_r": 0.8314,
+      "p_value": 0.0
+    }
+  },
+  "Lydia_new": {
+    "corr(sb, sd)": {
+      "pearson_r": 0.4574,
+      "p_value": 0.0
+    },
+    "corr(sb, increment)": {
+      "pearson_r": -0.1264,
+      "p_value": 0.001195
+    },
+    "corr(sb, ad)": {
+      "pearson_r": -0.574,
+      "p_value": 0.0
+    },
+    "corr(ad, increment)": {
+      "pearson_r": 0.8008,
+      "p_value": 0.0
+    },
+    "corr(sd, increment)": {
+      "pearson_r": 0.8243,
+      "p_value": 0.0
+    }
+  },
+  "Lydia_old": {
+    "corr(sb, sd)": {
+      "pearson_r": 0.4789,
+      "p_value": 0.0
+    },
+    "corr(sb, increment)": {
+      "pearson_r": -0.0759,
+      "p_value": 0.053542
+    },
+    "corr(sb, ad)": {
+      "pearson_r": -0.5119,
+      "p_value": 0.0
+    },
+    "corr(ad, increment)": {
+      "pearson_r": 0.8309,
+      "p_value": 0.0
+    },
+    "corr(sd, increment)": {
+      "pearson_r": 0.839,
+      "p_value": 0.0
+    }
+  },
+  "Eric1002": {
+    "corr(sb, sd)": {
+      "pearson_r": 0.4759,
+      "p_value": 0.0
+    },
+    "corr(sb, increment)": {
+      "pearson_r": -0.108,
+      "p_value": 0.000257
+    },
+    "corr(sb, ad)": {
+      "pearson_r": -0.5533,
+      "p_value": 0.0
+    },
+    "corr(ad, increment)": {
+      "pearson_r": 0.7625,
+      "p_value": 0.0
+    },
+    "corr(sd, increment)": {
+      "pearson_r": 0.823,
+      "p_value": 0.0
+    }
+  },
+  "Eric1009": {
+    "corr(sb, sd)": {
+      "pearson_r": 0.5113,
+      "p_value": 0.0
+    },
+    "corr(sb, increment)": {
+      "pearson_r": -0.1057,
+      "p_value": 2.3e-05
+    },
+    "corr(sb, ad)": {
+      "pearson_r": -0.5708,
+      "p_value": 0.0
+    },
+    "corr(ad, increment)": {
+      "pearson_r": 0.7622,
+      "p_value": 0.0
+    },
+    "corr(sd, increment)": {
+      "pearson_r": 0.8005,
+      "p_value": 0.0
+    }
+  }
+}

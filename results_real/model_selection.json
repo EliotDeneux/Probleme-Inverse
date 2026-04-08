@@ -1,0 +1,236 @@
+{
+  "glycerol": {
+    "best_model": "age",
+    "diagnostics": {
+      "corr_sb_increment": -0.1569,
+      "model_hint": "Mixte",
+      "n": 11060,
+      "K": 0.01341,
+      "tau": 51.69
+    },
+    "criteria": {
+      "age": {
+        "resid_H_rel": 0.0081,
+        "B_shape": "croissant (timer/sizer)",
+        "E_T_est": 50.35,
+        "E_T_data": 51.236,
+        "E_T_error": 0.0173,
+        "pct_incr": 0.759,
+        "pct_decr": 0.241
+      },
+      "size": {
+        "resid_H_rel": 0.0216,
+        "B_shape": "quasi-croissant (mixte)",
+        "E_T_est": 4.114,
+        "E_T_data": 4.157,
+        "E_T_error": 0.0104,
+        "pct_incr": 0.543,
+        "pct_decr": 0.312
+      },
+      "increment": {
+        "resid_H_rel": 0.0274,
+        "B_shape": "quasi-croissant (mixte)",
+        "E_T_est": 2.045,
+        "E_T_data": 2.053,
+        "E_T_error": 0.0041,
+        "pct_incr": 0.633,
+        "pct_decr": 0.236
+      }
+    }
+  },
+  "synthetic_rich": {
+    "best_model": "age",
+    "diagnostics": {
+      "corr_sb_increment": -0.0779,
+      "model_hint": "Adder",
+      "n": 10684,
+      "K": 0.030431,
+      "tau": 22.78
+    },
+    "criteria": {
+      "age": {
+        "resid_H_rel": 0.0058,
+        "B_shape": "quasi-croissant (mixte)",
+        "E_T_est": 22.021,
+        "E_T_data": 22.349,
+        "E_T_error": 0.0147,
+        "pct_incr": 0.663,
+        "pct_decr": 0.261
+      },
+      "size": {
+        "resid_H_rel": 0.0102,
+        "B_shape": "quasi-croissant (mixte)",
+        "E_T_est": 6.649,
+        "E_T_data": 6.708,
+        "E_T_error": 0.0088,
+        "pct_incr": 0.457,
+        "pct_decr": 0.412
+      },
+      "increment": {
+        "resid_H_rel": 0.0145,
+        "B_shape": "quasi-croissant (mixte)",
+        "E_T_est": 3.27,
+        "E_T_data": 3.298,
+        "E_T_error": 0.0085,
+        "pct_incr": 0.508,
+        "pct_decr": 0.302
+      }
+    }
+  },
+  "Lydia_new": {
+    "best_model": "age",
+    "diagnostics": {
+      "corr_sb_increment": -0.1264,
+      "model_hint": "Mixte",
+      "n": 654,
+      "K": 0.006423,
+      "tau": 107.92
+    },
+    "criteria": {
+      "age": {
+        "resid_H_rel": 0.0066,
+        "B_shape": "croissant (timer/sizer)",
+        "E_T_est": 107.678,
+        "E_T_data": 109.235,
+        "E_T_error": 0.0143,
+        "pct_incr": 0.729,
+        "pct_decr": 0.271
+      },
+      "size": {
+        "resid_H_rel": 0.0221,
+        "B_shape": "quasi-croissant (mixte)",
+        "E_T_est": 97.882,
+        "E_T_data": 98.349,
+        "E_T_error": 0.0048,
+        "pct_incr": 0.613,
+        "pct_decr": 0.317
+      },
+      "increment": {
+        "resid_H_rel": 0.0194,
+        "B_shape": "quasi-croissant (mixte)",
+        "E_T_est": 49.039,
+        "E_T_data": 49.336,
+        "E_T_error": 0.006,
+        "pct_incr": 0.698,
+        "pct_decr": 0.302
+      }
+    }
+  },
+  "Lydia_old": {
+    "best_model": "age",
+    "diagnostics": {
+      "corr_sb_increment": -0.0759,
+      "model_hint": "Adder",
+      "n": 648,
+      "K": 0.006288,
+      "tau": 110.23
+    },
+    "criteria": {
+      "age": {
+        "resid_H_rel": 0.0103,
+        "B_shape": "croissant (timer/sizer)",
+        "E_T_est": 101.415,
+        "E_T_data": 103.117,
+        "E_T_error": 0.0165,
+        "pct_incr": 0.724,
+        "pct_decr": 0.276
+      },
+      "size": {
+        "resid_H_rel": 0.0157,
+        "B_shape": "quasi-croissant (mixte)",
+        "E_T_est": 93.979,
+        "E_T_data": 94.585,
+        "E_T_error": 0.0064,
+        "pct_incr": 0.553,
+        "pct_decr": 0.377
+      },
+      "increment": {
+        "resid_H_rel": 0.0127,
+        "B_shape": "quasi-croissant (mixte)",
+        "E_T_est": 44.465,
+        "E_T_data": 44.914,
+        "E_T_error": 0.01,
+        "pct_incr": 0.643,
+        "pct_decr": 0.271
+      }
+    }
+  },
+  "Eric1002": {
+    "best_model": "increment",
+    "diagnostics": {
+      "corr_sb_increment": -0.108,
+      "model_hint": "Mixte",
+      "n": 1141,
+      "K": 0.005504,
+      "tau": 125.92
+    },
+    "criteria": {
+      "age": {
+        "resid_H_rel": 0.0704,
+        "B_shape": "croissant (timer/sizer)",
+        "E_T_est": 120.945,
+        "E_T_data": 121.307,
+        "E_T_error": 0.003,
+        "pct_incr": 0.739,
+        "pct_decr": 0.261
+      },
+      "size": {
+        "resid_H_rel": 0.0119,
+        "B_shape": "quasi-croissant (mixte)",
+        "E_T_est": 75.74,
+        "E_T_data": 76.134,
+        "E_T_error": 0.0052,
+        "pct_incr": 0.628,
+        "pct_decr": 0.291
+      },
+      "increment": {
+        "resid_H_rel": 0.0083,
+        "B_shape": "quasi-croissant (mixte)",
+        "E_T_est": 36.672,
+        "E_T_data": 36.925,
+        "E_T_error": 0.0068,
+        "pct_incr": 0.693,
+        "pct_decr": 0.221
+      }
+    }
+  },
+  "Eric1009": {
+    "best_model": "increment",
+    "diagnostics": {
+      "corr_sb_increment": -0.1057,
+      "model_hint": "Mixte",
+      "n": 1596,
+      "K": 0.00547,
+      "tau": 126.72
+    },
+    "criteria": {
+      "age": {
+        "resid_H_rel": 0.0752,
+        "B_shape": "croissant (timer/sizer)",
+        "E_T_est": 121.859,
+        "E_T_data": 122.052,
+        "E_T_error": 0.0016,
+        "pct_incr": 0.769,
+        "pct_decr": 0.231
+      },
+      "size": {
+        "resid_H_rel": 0.0116,
+        "B_shape": "quasi-croissant (mixte)",
+        "E_T_est": 81.541,
+        "E_T_data": 81.909,
+        "E_T_error": 0.0045,
+        "pct_incr": 0.638,
+        "pct_decr": 0.276
+      },
+      "increment": {
+        "resid_H_rel": 0.0112,
+        "B_shape": "croissant (timer/sizer)",
+        "E_T_est": 39.491,
+        "E_T_data": 39.664,
+        "E_T_error": 0.0044,
+        "pct_incr": 0.724,
+        "pct_decr": 0.236
+      }
+    }
+  }
+}
