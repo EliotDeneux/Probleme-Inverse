@@ -51,7 +51,7 @@ RES_DIR.mkdir(exist_ok=True)
 
 from real_data import load_all_datasets
 from real_analysis import estimate_B_real
-from src import DirectProblemSolver, NelsonAalanEstimator, TikhonovRegularizer, GeneralizedCrossValidation
+from src import DirectProblemSolver, NelsonAalanEstimator, TikhonovRegularizer, DiscrepancyPrinciple
 
 plt.rcParams.update({
     'axes.spines.top': False, 'axes.spines.right': False,
@@ -231,8 +231,7 @@ def estimate_B_hat(T: np.ndarray,
     H_eps = na.smooth(grid, sigma_grid=2.0)
 
     tikh  = TikhonovRegularizer(A, p=1).fit(H_eps)
-    ag    = np.logspace(-6, 0, 60)
-    alpha = GeneralizedCrossValidation().select(tikh, ag)
+    alpha = DiscrepancyPrinciple(tau=1.05).select(tikh, eps)
     B_hat = tikh.predict(alpha)
 
     # Nettoyer les valeurs négatives et NaN
