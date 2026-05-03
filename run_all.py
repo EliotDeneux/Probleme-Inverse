@@ -58,9 +58,9 @@ from plots import (
 )
 
 MODEL_RATES = {
-    'age'      : ['constant', 'weibull2', 'step'],
-    'size'     : ['constant', 'linear',   'power'],
-    'increment': ['constant', 'weibull2', 'step'],
+    'age'      : ['constant', 'weibull2', 'step', 'generalized_gamma_k1p5_s80p0'],
+    'size'     : ['constant', 'linear',   'power', 'generalized_gamma_k2p0_s2p0'],
+    'increment': ['constant', 'weibull2', 'step',  'generalized_gamma_k1p5_s1p5'],
 }
 
 

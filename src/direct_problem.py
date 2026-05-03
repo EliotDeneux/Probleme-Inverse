@@ -110,6 +110,20 @@ def make_power(beta: float, gamma: float) -> DivisionRateSpec:
     )
 
 
+def make_generalized_gamma(k: float, sigma: float, domain: str) -> DivisionRateSpec:
+    """B(t) = (k/σ)(t/σ)^{k−1}  (Gamma généralisé = Weibull(k, σ), k>0)."""
+    name = f'generalized_gamma_k{k}_s{sigma}'.replace('.', 'p')
+    return DivisionRateSpec(
+        name=name,
+        func=lambda t, _k=k, _s=sigma: (
+            (_k / _s) * (np.clip(np.asarray(t, float), 1e-12, None) / _s) ** (_k - 1)
+        ),
+        params={'k': k, 'sigma': sigma},
+        description=f'B(t) = (k/σ)(t/σ)^{{k−1}},  k={k},  σ={sigma}',
+        domain=domain,
+    )
+
+
 # ── Catalogue des taux correspondant aux fichiers simulés ─────────────────
 # Paramètres identiques à simulate_division.py pour reproductibilité.
 KNOWN_RATES: Dict[tuple, DivisionRateSpec] = {
@@ -125,6 +139,10 @@ KNOWN_RATES: Dict[tuple, DivisionRateSpec] = {
     ('increment', 'constant'): make_constant(lam=2.0,  domain='increment'),
     ('increment', 'weibull2'): make_weibull2(sigma=0.7, domain='increment'),
     ('increment', 'step')    : make_step(lam=4.0, t0=0.2, domain='increment'),
+    # Modèle gamma généralisé (Weibull k=2.5, paramètres par défaut du balayage)
+    ('age',       'generalized_gamma_k1p5_s80p0') : make_generalized_gamma(k=1.5, sigma=80.0, domain='age'),
+    ('increment', 'generalized_gamma_k1p5_s1p5')  : make_generalized_gamma(k=1.5, sigma=1.5,  domain='increment'),
+    ('size',      'generalized_gamma_k2p0_s2p0')  : make_generalized_gamma(k=2.0, sigma=2.0,  domain='size'),
 }
 
 
@@ -184,11 +202,11 @@ class DirectProblemSolver:
 
     def compute_mean(self, B_vals: np.ndarray) -> float:
         """E[T] = ∫₀^∞ S(t) dt  (espérance de la variable de division)."""
-        return float(np.trapz(self.compute_S(B_vals), self.grid))
+        return float(np.trapezoid(self.compute_S(B_vals), self.grid))
 
     def verify_normalization(self, B_vals: np.ndarray) -> float:
         """∫₀^∞ f(t) dt  (doit être proche de 1 si la grille couvre le support)."""
-        return float(np.trapz(self.compute_f(B_vals), self.grid))
+        return float(np.trapezoid(self.compute_f(B_vals), self.grid))
 
     # ── Opérateur discret (matrice) ─────────────────────────────────────────
 

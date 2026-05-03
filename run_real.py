@@ -120,6 +120,28 @@ def main():
         }
     _json(conclusions, 'model_selection')
 
+    # ── 4b. Export numérique de tous les B̂ ───────────────────────────────
+    _header('EXPORT B_HAT (toutes méthodes × tous modèles)')
+    _json({
+        name: {
+            model: {
+                method: {
+                    'grid' : res['grid'].tolist(),
+                    'B_hat': res['B_hat'].tolist(),
+                    'H_na' : res['H_na'].tolist(),
+                    'alpha': float(res['alpha']) if res.get('alpha') is not None else None,
+                    'n'    : int(res['n']),
+                    'eps'  : float(res['eps']),
+                }
+                for method, res in model_res.items()
+                if res.get('B_hat') is not None
+            }
+            for model, model_res in all_results[name].items()
+        }
+        for name in all_results
+    }, 'B_hat_all')
+    print('    -> B_hat_all.json  (grilles + B̂ pour toutes méthodes/modèles)')
+
     # ── 5. Comparaison inter-datasets ──────────────────────────────────────
     _header('COMPARAISON INTER-DATASETS')
     if show and len(all_ds) > 1:

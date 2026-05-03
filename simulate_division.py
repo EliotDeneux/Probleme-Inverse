@@ -136,12 +136,41 @@ def _make_step(lam: float, t0: float, unit_label: str) -> Rate:
     )
 
 
+# ── 4. Gamma généralisé : B(t) = (k/σ)(t/σ)^{k−1} ──────────────────────────
+#
+# H(t) = (t/σ)^k  →  T ~ Weibull(k, σ)  (cas général de Weibull2 pour k=2)
+#
+# Vérifications :
+#   (C1) ∫₀^∞ (k/σ)(s/σ)^{k−1} ds = ∞  ✓  (k > 0)
+#   (C2) E[T] = σ Γ(1 + 1/k) < ∞          ✓
+#
+# Simulation exacte : T = σ · (-ln U)^{1/k}, U ~ Unif(0,1)
+#   ≡ rng.weibull(k, n) * sigma  (numpy utilise la même paramétrisation)
+
+def _make_generalized_gamma(k: float, sigma: float, unit_label: str) -> Rate:
+    import math
+    E_t = sigma * math.gamma(1.0 + 1.0 / k)
+    name = f"generalized_gamma_k{k}_s{sigma}".replace(".", "p")
+    return Rate(
+        name=name,
+        description=(
+            f"B(t) = (k/σ)(t/σ)^{{k−1}}  [Gamma généralisé, k={k}, σ={sigma}]"
+        ),
+        params={"k": k, "sigma": sigma, f"E_t_{unit_label}": round(E_t, 4)},
+        B=lambda t, _k=k, _s=sigma: (
+            (_k / _s) * np.clip(np.asarray(t, float), 1e-12, None) / _s
+        ) ** (_k - 1) * (_k / _s),
+        sample_t=lambda n, rng, _k=k, _s=sigma: rng.weibull(_k, n) * _s,
+    )
+
+
 # ── Instanciation pour le modèle Âge ────────────────────────────────────────
 # Paramètres calibrés : E. coli, temps en minutes, tailles en µm
 AGE_RATES = [
     _make_constant(lam=0.02,  unit_label="min"),          # E[A] = 50 min
     _make_weibull2(sigma=60.0, unit_label="min"),         # E[A] ≈ 53 min
     _make_step(lam=0.05, t0=20.0, unit_label="min"),     # E[A] = 40 min
+    _make_generalized_gamma(k=1.5, sigma=80.0, unit_label="min"),  # E[A] ≈ 55 min
 ]
 
 # ── Instanciation pour le modèle Incrément ───────────────────────────────────
@@ -150,6 +179,7 @@ INCR_RATES = [
     _make_constant(lam=2.0,   unit_label="um"),           # E[Z] = 0.50 µm
     _make_weibull2(sigma=0.7,  unit_label="um"),          # E[Z] ≈ 0.62 µm
     _make_step(lam=4.0, t0=0.2, unit_label="um"),        # E[Z] = 0.45 µm
+    _make_generalized_gamma(k=1.5, sigma=1.5, unit_label="um"),   # E[Z] ≈ 0.90 µm
 ]
 
 
@@ -224,7 +254,33 @@ size_power = Rate(
     ) ** (1 / _gp1),
 )
 
-SIZE_RATES = [size_constant, size_linear, size_power]
+# ── Gamma généralisé pour le modèle taille : B(x) = (k/σ)(x/σ)^{k−1} ─────────
+#
+# H(x ; xb) = (x/σ)^k − (xb/σ)^k
+# Simulation : E ~ Exp(1)  →  Xud = σ · (xb^k/σ^k + E)^{1/k}
+#
+# Vérifications :
+#   (C1) ∫_{xb}^∞ (k/σ)(x/σ)^{k−1} dx = ∞  ✓
+#   (C2) E[Xud^k − xb^k] = σ^k < ∞           ✓
+
+def _make_size_generalized_gamma(k: float, sigma: float) -> Rate:
+    import math
+    name = f"generalized_gamma_k{k}_s{sigma}".replace(".", "p")
+    return Rate(
+        name=name,
+        description=f"B(x) = (k/σ)(x/σ)^{{k−1}}  [Gamma généralisé taille, k={k}, σ={sigma}]",
+        params={"k": k, "sigma": sigma},
+        B=lambda x, _k=k, _s=sigma: (
+            (_k / _s) * (np.clip(np.asarray(x, float), 1e-12, None) / _s) ** (_k - 1)
+        ),
+        sample_x=lambda xb, rng, _k=k, _s=sigma: (
+            _s * (( (xb / _s) ** _k ) + rng.exponential(1, len(xb))) ** (1.0 / _k)
+        ),
+    )
+
+size_gg = _make_size_generalized_gamma(k=2.0, sigma=2.0)
+
+SIZE_RATES = [size_constant, size_linear, size_power, size_gg]
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
