@@ -18,10 +18,17 @@ Estimation du taux de division cellulaire $B$ à partir de données de populatio
 
 ```
 Probleme-Inverse/
-├── run_all.py               ← script principal (voir ci-dessous)
+├── run_all.py               ← script principal (données simulées, voir ci-dessous)
+├── run_real.py              ← pipeline complet sur données réelles
+├── run_ml.py                ← Neural Operator (apprentissage de l'opérateur inverse)
 ├── simulate_division.py     ← simulation des données
 ├── evaluate.py              ← métriques d'erreur et études de convergence
 ├── plots.py                 ← toutes les fonctions de visualisation
+│
+├── real_data.py             ← chargement et prétraitement des datasets réels
+├── real_analysis.py         ← estimation de B sur données réelles (3 modèles)
+├── get_alpha.py             ← optimisation du bandwidth KDE (modèle âge)
+├── get_alpha_taille.py      ← optimisation du bandwidth KDE (modèle taille)
 │
 ├── src/                     ← bibliothèque cœur (modules réutilisables)
 │   ├── direct_problem.py    ← opérateur Ψ et problème direct
@@ -30,6 +37,10 @@ Probleme-Inverse/
 │   ├── parameter_selection.py← sélection du paramètre α
 │   ├── hazard_estimation.py ← pipeline complet d'estimation
 │   └── __init__.py
+│
+├── ml_core.py               ← architecture MLP résiduel NumPy pur
+├── ml_data.py               ← génération de données synthétiques (8 familles de B)
+├── ml_train.py              ← boucle d'entraînement AdamW + curriculum
 │
 └── data/
     ├── age/        {constant, weibull2, step}.npz
@@ -44,7 +55,7 @@ Probleme-Inverse/
 ## Lancement rapide
 
 ```bash
-# Tout exécuter (sauf étude de convergence qui est longue)
+# Tout exécuter (données simulées, sauf étude de convergence qui est longue)
 python run_all.py
 
 # Seulement le modèle âge, sous-échantillonné à 2000 cellules
@@ -58,6 +69,18 @@ python run_all.py --no-plots
 
 # Étude de convergence (≈ 5 min)
 python run_all.py --steps convergence
+
+# Analyse des données réelles (tous les datasets)
+python run_real.py
+
+# Données réelles — un seul dataset
+python run_real.py --dataset glycerol
+
+# Neural Operator (entraînement complet + évaluation)
+python run_ml.py
+
+# Neural Operator — charger un modèle existant sans ré-entraîner
+python run_ml.py --eval-only
 ```
 
 ### Options de `run_all.py`
@@ -69,12 +92,32 @@ python run_all.py --steps convergence
 | `--n-max` | entier | 10 000 (complet) |
 | `--no-plots` | flag | figures activées |
 
+### Options de `run_real.py`
+
+| Option | Valeurs possibles | Défaut |
+|--------|-------------------|--------|
+| `--dataset` | `glycerol` `synthetic_rich` `Lydia_new` `Lydia_old` `Eric1002` `Eric1009` | tous |
+| `--no-plots` | flag | figures activées |
+
+### Options de `run_ml.py`
+
+| Option | Valeurs possibles | Défaut |
+|--------|-------------------|--------|
+| `--eval-only` | flag | entraîne depuis zéro |
+| `--n-train` | entier | 30 000 |
+| `--data-dir` | chemin | `./data` |
+| `--no-plots` | flag | figures activées |
+
 ### Sorties produites
 
 | Dossier | Contenu |
 |---------|---------|
-| `figures/` | Figures PNG (problème direct, estimations, courbes α, convergence, heatmaps) |
-| `results/` | Métriques JSON (erreurs L², statistiques KS, paramètres α sélectionnés) |
+| `figures/` | Figures PNG données simulées (problème direct, estimations, courbes α, convergence, heatmaps) |
+| `results/` | Métriques JSON données simulées |
+| `figures_real/` | Figures PNG données réelles (vue d'ensemble, B̂ × 3 modèles, ajustement H, comparaisons) |
+| `results_real/` | Métriques et sélection de modèle JSON (données réelles) |
+| `figures_ml/` | Figures PNG Neural Operator (courbes d'entraînement, comparaison ML vs Tikhonov) |
+| `results_ml/` | Poids `.pkl`, historique d'entraînement, erreurs L² test |
 
 ---
 
@@ -108,9 +151,174 @@ La croissance est exponentielle : $X_{ud} = X_{ub} \cdot e^{K A_{ud}}$ avec $K =
 | `linear` | $\alpha x$ | Seuil de taille absolu (modèle *sizer*) |
 | `power` | $\beta \sqrt{x}$ | Interpolation *adder*/*sizer* |
 
+### Distribution gamma généralisée et fit de $B$
+
+Pour les taux de la famille Weibull généralisée (utilisée dans `ml_data.py` et pour le fit paramétrique des données réelles), on peut écrire $B$ sous la forme puissance :
+
+$$B(t) = \frac{k}{\sigma}\left(\frac{t}{\sigma}\right)^{k-1}, \quad k > 0,\ \sigma > 0$$
+
+ce qui correspond à un taux de hasard de Weibull($k$, $\sigma$). La densité de division associée suit alors une **loi de Weibull**, dont la loi gamma généralisée est une sur-famille :
+
+$$f(t ; k, \sigma, p) = \frac{p}{\sigma\,\Gamma(k/p)}\left(\frac{t}{\sigma}\right)^{k-1} \exp\!\left[-\left(\frac{t}{\sigma}\right)^p\right]$$
+
+avec $p > 0$ (exposant de puissance), $k > 0$ (forme), $\sigma > 0$ (échelle). Les cas particuliers sont :
+- $p = 1$ : loi gamma (taux $B$ croissant polynomialement) ;
+- $p = k$ : loi de Weibull classique (taux $B$ croissant en puissance) ;
+- $k = 1, p = 1$ : loi exponentielle (taux $B$ constant).
+
+Le **fit de $B$** sur données réelles consiste à ajuster $\hat{B}$ obtenu par régularisation (Tikhonov p=1) à une loi paramétrique via la relation :
+
+$$\hat{B}(t) = \frac{\hat{f}(t)}{1 - \hat{F}(t)} \approx B_\theta(t)$$
+
+Le critère d'ajustement est le résidu $\|\Psi \hat{B} - \hat{H}_{NA}\|_{L^2} / \|\hat{H}_{NA}\|_{L^2}$.
+
+---
+
+## Données réelles
+
+### Datasets disponibles
+
+| Dataset | $n$ | $K$ (min$^{-1}$) | $\tau$ (min) | Contexte biologique |
+|---------|-----|-----------------|-------------|---------------------|
+| `glycerol` | 11 060 | 0.01341 | ≈ 52 | *E. coli* milieu glycérol (croissance lente), tailles en µm |
+| `synthetic_rich` | 10 684 | 0.03043 | ≈ 23 | Données synthétiques milieu riche (LB-like), tailles en µm |
+| `Lydia_new` | 654 | 0.00642 | ≈ 108 | *E. coli* Lydia3101 — pôle neuf |
+| `Lydia_old` | 648 | 0.00629 | ≈ 110 | *E. coli* Lydia3101 — pôle vieux |
+| `Eric1002` | 1 141 | 0.00550 | ≈ 126 | *E. coli* expérience microfluidique (croissance lente), tailles en pixels |
+| `Eric1009` | 1 596 | 0.00547 | ≈ 127 | idem, répliquat indépendant |
+
+Le taux de croissance $K$ est estimé directement depuis les données : $K = \operatorname{mean}\!\bigl[\log(X_{ud}/X_{ub})\,/\,A_{ud}\bigr]$.
+
+Dans notre étude, nous nous sommes concentrés sur `Eric1002` et `Eric1009`.
+
+### Formats de fichiers réels
+
+| Source | Format colonnes | Unités |
+|--------|----------------|--------|
+| `Eric*` | `sb, sd, ad` | pixels, pixels, frames (1 frame = 5 min) |
+| `glycerol`, `synthetic_rich` | `ad, sb, sd, id` | min, µm, µm, µm |
+| `Lydia3101_*` | `ad, sb, sd` | frames, pixels, pixels |
+
+### Résultats de sélection de modèle
+
+Le meilleur modèle est déterminé par le résidu relatif $\|\Psi\hat{B} - \hat{H}_{NA}\|/\|\hat{H}_{NA}\|$ :
+
+| Dataset | Meilleur modèle | Forme de $B$ | Diagnostic adder/sizer |
+|---------|----------------|-------------|------------------------|
+| `glycerol` | âge | croissant (timer) | Mixte ($r = -0.16$) |
+| `synthetic_rich` | âge | quasi-croissant | Adder ($r = -0.08$) |
+| `Lydia_new` | âge | croissant (timer) | Mixte ($r = -0.13$) |
+| `Lydia_old` | âge | croissant (timer) | Adder ($r = -0.08$) |
+| `Eric1002` | incrément | quasi-croissant | Mixte ($r = -0.11$) |
+| `Eric1009` | incrément | croissant (timer) | Mixte ($r = -0.11$) |
+
+La corrélation $r = \operatorname{corr}(X_{ub},\, Z)$ discrimine *adder* ($r \approx 0$) et *sizer* ($r > 0.2$).
+
 ---
 
 ## Documentation des modules
+
+---
+
+### `real_data.py`
+
+Chargement et prétraitement des données expérimentales.
+
+#### `CellDataset`
+Dataclass représentant un dataset (réel ou synthétique).
+
+| Attribut | Type | Description |
+|----------|------|-------------|
+| `name` | `str` | Identifiant court (`'glycerol'`, `'Lydia_new'`, …) |
+| `label` | `str` | Nom complet pour les figures |
+| `ad` | array | Âge à la division [min] |
+| `sb` | array | Taille à la naissance [µm ou px] |
+| `sd` | array | Taille à la division [même unité] |
+| `increment` | array | $Z = X_{ud} - X_{ub}$ |
+| `K` | `float` | Taux de croissance exponentielle [1/min] |
+| `tau` | `float` | Temps de doublement [min] $= \ln 2 / K$ |
+| `n` | `int` | Nombre de cellules |
+| `unit_size` | `str` | `'µm'` ou `'px'` |
+| `condition` | `str` | Condition biologique (`'glycerol'`, `'rich'`, …) |
+
+#### Fonctions de chargement
+
+| Fonction | Signature | Description |
+|----------|-----------|-------------|
+| `load_glycerol(path, q)` | `str, float` | Format `ad, sb, sd, id` — milieu glycérol |
+| `load_synthetic_rich(path, q)` | `str, float` | Même format — milieu riche synthétique |
+| `load_lydia(path_new, path_old)` | `str, str` | Paire new/old pole, conversion frames→min |
+| `load_eric(path, name)` | `str, str` | Format `sb, sd, ad` — microfluidique |
+| `load_all_datasets(data_dir)` | `str` → `dict` | Charge tous les datasets disponibles via glob |
+
+#### Fonctions d'analyse
+
+| Fonction | Description |
+|----------|-------------|
+| `dataset_summary_table(datasets)` | DataFrame récapitulatif ($n$, $K$, $\tau$, moyennes, CV) |
+| `compute_correlations(ds)` | Pearson entre `(sb,sd)`, `(sb,increment)`, `(sb,ad)`, etc. — discriminant adder/sizer |
+
+---
+
+### `real_analysis.py`
+
+Estimation de $\hat{B}$ sur données réelles et conclusions biologiques.
+
+#### `estimate_B_real(observations, entry_times, n_grid, quantile, methods)`
+Lance les méthodes Tikhonov ($p=0$, $p=1$) et KDE sur un tableau d'observations réelles.
+
+Retourne `{method: {'grid', 'B_hat', 'alpha', 'H_na', 'H_smooth', 'residual', 'n', 'eps'}}`.
+
+#### `analyze_dataset(ds)`
+Lance les 3 modèles (âge, taille, incrément) sur un `CellDataset`. Retourne `{'age': {...}, 'size': {...}, 'increment': {...}}`.
+
+#### `model_selection_criteria(ds, results)`
+Calcule pour chaque modèle :
+- résidu relatif $\|\Psi\hat{B} - \hat{H}_{NA}\|/\|\hat{H}_{NA}\|$ ;
+- monotonie de $\hat{B}$ (% croissant / décroissant) ;
+- erreur sur $\mathbb{E}[T]$ estimé vs données.
+
+Retourne un `dict` avec une clé `'_diagnostics'` contenant la corrélation $\operatorname{corr}(X_{ub}, Z)$ et l'interprétation adder/sizer/mixte.
+
+#### Fonctions de visualisation
+
+| Fonction | Figure produite |
+|----------|----------------|
+| `plot_dataset_overview(ds)` | 2×3 : distributions de $a$, $X_{ub}$, $Z$ ; corrélations ; estimation de $K$ |
+| `plot_B_three_models(ds, results)` | $\hat{B}$ pour les 3 modèles × 3 méthodes |
+| `plot_H_fit(ds, results)` | Ajustement $\hat{H}_{NA}$ vs $\Psi\hat{B}$ pour chaque modèle |
+| `plot_all_datasets_comparison(all_ds, all_res, model, method)` | $\hat{B}$ normalisé par $\tau$ — comparaison inter-datasets |
+
+---
+
+### `get_alpha.py`
+
+Optimisation du paramètre de lissage $\alpha$ (bandwidth KDE) pour le **modèle âge**.
+
+**Principe** : pour chaque taille $n$, minimiser l'erreur $L^2$ moyenne $\mathbb{E}[\|\hat{f}_{\alpha,n} - f_{\text{ref}}\|^2]$ par sous-échantillonnage aléatoire. La référence $f_{\text{ref}}$ est estimée par la règle de Silverman sur tout l'échantillon.
+
+| Fonction | Description |
+|----------|-------------|
+| `estimate_kde(data, grid, alpha, kernel_name)` | KDE gaussien ou Epanechnikov — retourne $(\hat{f}, \hat{F})$ |
+| `compute_division_rate(f_est, F_est)` | $\hat{B}(a) = \hat{f}(a)/(1 - \hat{F}(a))$ |
+| `expected_l2_error(alpha, n, ...)` | Erreur $L^2$ moyenne sur `num_trials` sous-échantillons |
+| `find_optimal_alpha(n, ...)` | Minimise l'erreur via `scipy.minimize_scalar` sur $[0.01, 5.0]$ |
+
+Le script principal trace la vitesse de convergence $\log\alpha^* = \text{pente} \cdot \log\varepsilon + b$ (pente théorique $= 1/5$ pour KDE).
+
+---
+
+### `get_alpha_taille.py`
+
+Optimisation du bandwidth KDE pour le **modèle taille** avec troncature gauche.
+
+| Fonction | Description |
+|----------|-------------|
+| `check_data_integrity(xb, xd, age)` | Sanity check biologique (cohérence $X_{ud} > X_{ub}$, valeurs nulles) |
+| `estimate_B_size(xb, xd, grid, alpha, method)` | `'naive'` : KDE sur $X_{ud}$ ; `'rigorous'` : Ramlau-Hansen avec ensemble à risque $R(x)$ |
+| `expected_l2_error_size(alpha, n_sample, ...)` | Erreur $L^2$ sur la zone centrale (5e–95e percentile) |
+| `find_optimal_alpha_size(n_sample, ...)` | Minimise l'erreur par `minimize_scalar` |
+| `analyze_sat(xb, xd)` | Régression $\Delta x = a \cdot X_{ub} + b$ — classification ADDER / SIZER / TIMER |
 
 ---
 
@@ -355,7 +563,7 @@ Métriques d'erreur, études de convergence et comparaisons.
 | Fonction | Signature | Description |
 |----------|-----------|-------------|
 | `compute_errors(result)` | `EstimationResult → dict` | Calcule `l2_abs`, `l2_rel`, `linf_abs`, `linf_rel`, `alpha`, `n` |
-| `verify_direct_problem(model, rate_name, data_dir)` | → `dict` | Compare histogramme empirique et densité théorique $f$, calcule la statistique KS. ⚠️ Pour `'size'`, le KS est élevé (attendu : $F$ est conditionnelle à $X_{ub}$). |
+| `verify_direct_problem(model, rate_name, data_dir)` | → `dict` | Compare histogramme empirique et densité théorique $f$, calcule la statistique KS. Attention, Pour `'size'`, le KS est élevé (attendu : $F$ est conditionnelle à $X_{ub}$). |
 | `convergence_study(model, rate_name, method, alpha_selection, n_values, n_repeat, data_dir, seed)` | → `dict` | Étudie $\|\hat{B}-B\|_{L^2}$ en fonction de $n$ (sous-échantillonnage avec répétitions). Retourne `{n_values, l2_mean, l2_std, l2_all, alpha_mean}`. |
 | `compare_all_methods(model, data_dir, n_max)` | → `dict` | Lance toutes les méthodes sur tous les taux d'un modèle. Retourne `{rate: {method: error_dict}}`. |
 | `summary_table(comparison_dict)` | → `(array, rates, methods)` | Tableau (taux × méthodes) des erreurs L² relatives. |
@@ -376,6 +584,25 @@ Toutes les fonctions de visualisation.
 | `plot_error_heatmap(comparison, model, save_path)` | Heatmap taux×méthodes | Vue d'ensemble des erreurs $L^2$ relatives |
 | `plot_picard_criterion(result, save_path)` | 1×2 : $|\hat{c}_j|$ et $|\hat{c}_j|/\sigma_j$ | Diagnostique le mal-positude |
 | `plot_global_summary(all_results, save_path)` | Grille de panneaux | Vue d'ensemble tous modèles / tous taux |
+
+---
+
+### `ml_core.py` / `ml_data.py` / `ml_train.py`
+
+Neural Operator NumPy pur apprenant l'opérateur inverse $\Phi_\theta : H^\varepsilon \mapsto \hat{B}$.
+
+**Architecture** : MLP Résiduel Pre-Norm — encodeur linéaire + $N$ blocs résiduels (LayerNorm + FFN 4x + GELU + Dropout 10 %) + Softplus en sortie ($\hat{B} \geq 0$ garanti).
+
+**Données d'entraînement** : 8 familles de taux $B$ (constant, Weibull, seuil, linéaire, sigmoïde, mélange gaussien, puissance, spline aléatoire) — 30 000 paires $(H^\varepsilon_{\text{norm}}, B_{\text{norm}})$ avec curriculum (phase 1 : $n \geq 2000$, peu bruité ; phase 2 : $n \geq 300$, bruit réaliste).
+
+**Optimiseur** : AdamW + warmup linéaire + décroissance cosinus.
+
+| Module | Classe / Fonction clé | Description |
+|--------|----------------------|-------------|
+| `ml_core.py` | `NeuralOperator` | Réseau principal : `forward`, `backward`, `predict_with_uncertainty` (MC-Dropout) |
+| `ml_core.py` | `AdamW` | Optimiseur avec schedule lr |
+| `ml_data.py` | `generate_dataset(n_samples, ...)` | Génère les paires $(H_\text{norm}, B_\text{norm})$ |
+| `ml_train.py` | `train(net, ...)` | Boucle d'entraînement avec curriculum |
 
 ---
 
